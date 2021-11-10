@@ -1,9 +1,9 @@
 version: '3.3'
 
 services:
-  db:
+  my-db:
     image: mysql:5.7.16
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: 'db'
       # So you don't have to use root, but you can if you like
@@ -16,6 +16,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./bdd/:/var/lib/mysql
+      - ./bdd:/var/lib/mysql
+
+
 volumes:
-  my-db:
+  db:
