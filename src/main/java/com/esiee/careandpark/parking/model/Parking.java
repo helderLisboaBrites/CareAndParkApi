@@ -72,10 +72,19 @@ public class Parking {
 		this.adresse = adresse;
 	}
 
-	public Parking() {
-		compteur = 0;
-	}
 
+	public Parking() {
+	}
+	
+	
+	public Parking(int id, String nom, String adresse, int compteur) {
+		this.id = id;
+		this.nom = nom;
+		this.adresse = adresse;
+		this.compteur = compteur;
+	}
+	
 	public interface ValidationAjout {}
 	
-}
+	}
+	
