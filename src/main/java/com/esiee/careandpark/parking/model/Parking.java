@@ -46,6 +46,9 @@ public class Parking {
 		return compteur;
 	}
 	public void setCompteur(int compteur) {
+		if(compteur < 0) {
+			throw new IllegalArgumentException("Le compteur ne peut pas être négatif");
+		}
 		this.compteur = compteur;
 	}
 	public int getId() {

@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 public interface PlaceRepository extends JpaRepository<Place,Integer> {
     Iterable<Place> getAllByParkingId(int id_parking);
     Optional<Place> findByParkingIdAndNumero(int id_parking, int numero);
+    boolean existsByNumeroAndParkingId(int numero, int id_parking);
 }

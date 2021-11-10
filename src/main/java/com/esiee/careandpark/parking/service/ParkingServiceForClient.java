@@ -7,6 +7,7 @@ import com.esiee.careandpark.parking.model.Place;
 import com.esiee.careandpark.parking.model.exceptions.ParkingNotFoundException;
 import com.esiee.careandpark.parking.model.exceptions.ParkingVideException;
 import com.esiee.careandpark.parking.model.exceptions.PlaceDejaOccupeeException;
+import com.esiee.careandpark.parking.model.exceptions.PlaceExisteDejaException;
 import com.esiee.careandpark.parking.model.exceptions.PlaceNotFoundException;
 import com.esiee.careandpark.parking.model.reference.EtatPlace;
 import com.esiee.careandpark.parking.repository.ParkingRepository;
@@ -77,7 +78,21 @@ public class ParkingServiceForClient {
     }
 
     public Parking ajouterParking(Parking parking) {
+
+		if(parking == null) {
+			throw new IllegalArgumentException("Le parking à créer ne peut pas être null");
+		}
+		
+		if(parking.getNom()== null || parking.getNom().isEmpty()) {
+			throw new IllegalArgumentException("Le parking à créer doit avoir un nom");
+		}
+
+		if(parking.getAdresse()== null || parking.getAdresse().isEmpty()) {
+			throw new IllegalArgumentException("Le parking à créer doit avoir une adresse");
+		}
+
 		Parking nouevau = parkingRepo.saveAndFlush(parking);
+
         return nouevau;
     }
 
@@ -105,6 +120,18 @@ public class ParkingServiceForClient {
 
 	public Place ajouterPlace(int id_parking, Place place) {
 
+		if(place == null) {
+			throw new IllegalArgumentException("La place à créer ne peut pas être null");
+		}
+		
+		if(place.getNumero() == null) {
+			throw new IllegalArgumentException("La place à créer doit avoir un numéro");
+		}
+		
+		if(place.getType() == null) {
+			throw new IllegalArgumentException("La place à créer doit avoir un type");
+		}
+
         if(!parkingRepo.existsById(id_parking)) {
             throw new ParkingNotFoundException(id_parking);
         }
@@ -112,7 +139,10 @@ public class ParkingServiceForClient {
 		place.setParkingId(id_parking);
 		place.setEtat(EtatPlace.LIBRE);
 
-		// save = create or update
+		if(placeRepo.existsByNumeroAndParkingId(place.getNumero(), id_parking)) {
+			throw new PlaceExisteDejaException(place.getNumero(), id_parking);
+		}
+
 		return placeRepo.saveAndFlush(place);
 	}
 
@@ -128,6 +158,14 @@ public class ParkingServiceForClient {
     }
 
 	public Place reserverPlace(int id_parking, int numero, Place demande) {
+
+		if(demande == null) {
+			throw new IllegalArgumentException("La place à réserver ne peut pas être null");
+		}
+		
+		if(demande.getEtat() == null) {
+			throw new IllegalArgumentException("La place à réserver doit avoir un nouvel état");
+		}
 
 		Place place = obtenirPlace(id_parking, numero);
 
