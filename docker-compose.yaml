@@ -13,16 +13,9 @@ services:
       # Password for root access
       MYSQL_ROOT_PASSWORD: '1234'
       # Where our data will be persisted
-    volumes:
-      - ./bdd/data:/var/lib/mysql
-
-  phpmyadmin:
-    image: phpmyadmin
-    restart: always
     ports:
-      - 3306:80
-    environment:
-      - PMA_ARBITRARY=1
-# Names our volume
+      - "3306:3306"
+    volumes:
+      - ./bdd/:/var/lib/mysql
 volumes:
   my-db:

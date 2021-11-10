@@ -1,16 +1,18 @@
 package com.esiee.careandpark.parking.model.exceptions;
 
-public class PlaceNotFoundException extends Exception{
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+@ControllerAdvice
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class PlaceNotFoundException extends RuntimeException{
 	
-	public PlaceNotFoundException(int numero) {
-		super("la place "+numero+" n'existe pas");
+	public PlaceNotFoundException(int id_place) {
+		super("La place "+id_place+" n'existe pas");
 	}
-	
-	
 
+	public PlaceNotFoundException() {
+		super("La place n'existe pas");
+	}
 }
