@@ -17,7 +17,20 @@ services:
       - "3306:3306"
     volumes:
       - ./bdd:/var/lib/mysql
-
-
+    networks:
+      - backend  
+  
+  
+  app:
+    image: care_and_park_api_docker:latest
+    depends_on: 
+      - my-db 
+    ports:
+      - "8080:8080"
+    networks:
+      - backend  
 volumes:
   db:
+
+networks:
+  backend:
