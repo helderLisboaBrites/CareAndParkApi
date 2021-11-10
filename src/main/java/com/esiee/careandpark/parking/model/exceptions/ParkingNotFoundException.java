@@ -1,16 +1,20 @@
 package com.esiee.careandpark.parking.model.exceptions;
 
-public class ParkingNotFoundException extends Exception{
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	public ParkingNotFoundException(String name) {
-		super("la parking "+name+" n'existe pas");
+@ControllerAdvice
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ParkingNotFoundException extends RuntimeException{
+
+	public ParkingNotFoundException(int id_parking) {
+		super("Le parking "+id_parking+" n'existe pas");
 	}
 	
+	public ParkingNotFoundException() {
+		super("Le parking n'existe pas");
+	}
 	
 
 }
