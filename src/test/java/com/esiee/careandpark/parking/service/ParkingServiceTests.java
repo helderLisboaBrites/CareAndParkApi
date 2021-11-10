@@ -1,7 +1,17 @@
 package com.esiee.careandpark.parking.service;
 
-import com.esiee.careandpark.parking.model.Parking;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+
+import com.esiee.careandpark.parking.model.Parking;
+import com.esiee.careandpark.parking.model.Place;
+import com.esiee.careandpark.parking.model.exceptions.ParkingNotFoundException;
+import com.esiee.careandpark.parking.model.exceptions.PlaceDejaOccupeeException;
+import com.esiee.careandpark.parking.model.exceptions.PlaceExisteDejaException;
+import com.esiee.careandpark.parking.model.exceptions.PlaceNotFoundException;
+import com.esiee.careandpark.parking.model.reference.EtatPlace;
+import com.esiee.careandpark.parking.model.reference.TypePlace;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,93 +28,268 @@ class ParkingServiceTests {
 
 	}
 
+	<T> int getIterableSize(Iterable<T> it) {
+		int count = 0;
+		for (@SuppressWarnings("unused") T t : it) count++;
+		return count;
+	}
+
+	Parking getNewParking() {
+		Parking nouveauParking = new Parking();
+		nouveauParking.setNom("Parking du gymnase");
+		nouveauParking.setAdresse("Gymnase");
+		return parkingService.ajouterParking(nouveauParking);
+	}
+
+	Place getNewPlace(int id_parking, int numero) {
+		Place place = new Place();
+		place.setNumero(numero);
+		place.setType(TypePlace.NOMINALE);
+		return parkingService.ajouterPlace(id_parking, place);
+	}
+
+	Parking getNoParking() {
+		Parking parking = new Parking();
+		parking.setId(-1);
+		return parking;
+	}
+
 	@Test
 	void testAjoutParkingFail() {
-		// parking sans nom
-		// parking sans adresse
-		// parking null
+
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterParking(null));
+
+		Parking parking  = new Parking();
+
+		parking.setNom("nom");
+		parking.setAdresse(null);
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterParking(parking));
+
+		parking.setNom(null);
+		parking.setAdresse("adresse");
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterParking(parking));
+
+		parking.setNom("nom");
+		parking.setAdresse("");
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterParking(parking));
+
+		parking.setNom("");
+		parking.setAdresse("adresse");
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterParking(parking));
 	}
 	
 	@Test
 	void testAjoutParking() {
-		// parking nom correct adresse correcte
-		// vérifier nom adresse et compteur à 0
+		Parking parking = new Parking();
+		Parking created;
+
+		parking.setNom("Parking de la mairie");
+		parking.setAdresse("Mairie");
+		
+		created = parkingService.ajouterParking(parking);
+
+		assertEquals(parking.getNom(), created.getNom());
+		assertEquals(parking.getAdresse(), created.getAdresse());
+		assertEquals(0, created.getCompteur());
+
+		parking.setNom("Parking du gymnase");
+		parking.setAdresse("Gymnase");
+		parking.setCompteur(12);
+		
+		created = parkingService.ajouterParking(parking);
+
+		assertEquals(parking.getNom(), created.getNom());
+		assertEquals(parking.getAdresse(), created.getAdresse());
+		assertEquals(12, created.getCompteur());
 	}
 
 	@Test
 	void testObtenirParkings() {
-		//obtenirparking()
-		// vérifier liste vide
+		Iterable<Parking> parkings;
+		
+		parkings = parkingService.obtenirParkings();
+		// assertEquals(0, getIterableSize(parkings)); // RESET DB BEFORE TESTS ?
 
-		// ajouterparking() - obtenirparkings()
-		// vérifier taille 		
+		final Parking parking = new Parking();
+
+		parking.setNom("Nom 1");
+		parking.setAdresse("Adresse 1");
+		parkingService.ajouterParking(parking);
+
+		parkings = parkingService.obtenirParkings();
+		// assertEquals(1, getIterableSize(parkings)); // RESET DB BEFORE TESTS ?
+
+		parking.setNom("Nom 2");
+		parking.setAdresse("Adresse 2");
+		parkingService.ajouterParking(parking);
+
+		parking.setNom("Nom 3");
+		parking.setAdresse("Adresse 3");
+		parkingService.ajouterParking(parking);
+
+		parkings = parkingService.obtenirParkings();
+		assertEquals(3, getIterableSize(parkings));
 	}
 
 	@Test
 	void testObtenirParkingFail() {
-		// id existe pas
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.obtenirParking(-1));
 	}
 
 	@Test
 	void testObtenirParking() {
-		// ajouterparking() - obtenirparking()
-		// vérifier 
+		Parking parking = new Parking();
+		parking.setNom("Parking du gymnase");
+		parking.setAdresse("Gymnase");
+		parking.setCompteur(12);
+		
+		parking = parkingService.ajouterParking(parking);
+
+		Parking obtenu = parkingService.obtenirParking(parking.getId());
+
+		assertEquals(parking.getNom(), obtenu.getNom());
+		assertEquals(parking.getAdresse(), obtenu.getAdresse());
+		assertEquals(parking.getCompteur(), obtenu.getCompteur());
+		assertEquals(parking.getId(), obtenu.getId());
 	}
 
 	@Test
 	void testAjouterPlaceFail() {
-		// id parking existe pas
-		// place null
-		// place pas de numero ?
-		// place type null
-		// place existe déjà
+		final Parking parking = getNewParking();
+		
+		final Place place = new Place();
+		place.setNumero(1);
+		place.setType(TypePlace.NOMINALE);
+
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.ajouterPlace(-1, place));
+
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterPlace(parking.getId(), null));
+
+		place.setNumero(null);
+		place.setType(TypePlace.NOMINALE);
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterPlace(parking.getId(), place));
+
+		place.setNumero(2);
+		place.setType(null);
+		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterPlace(parking.getId(), place));
+		
+		place.setNumero(2);
+		place.setType(TypePlace.DEUX_ROUES);
+		assertThrows(PlaceExisteDejaException.class, () -> parkingService.ajouterPlace(parking.getId(), place));
 	}
 
 	@Test
 	void testAjouterPlace() {
-		// ajouterplace() 
-		// vérifier idparking numero type etat
+		final Parking parking = getNewParking();
+
+		Place place = new Place();
+		Place created;
+
+		place.setNumero(1);
+		place.setType(TypePlace.NOMINALE);
+		created = parkingService.ajouterPlace(parking.getId(), place);
+
+		assertEquals(parking.getId(), created.getParkingId());
+		assertEquals(place.getNumero(), created.getNumero());
+		assertEquals(place.getType(), created.getType());
+		assertEquals(EtatPlace.LIBRE, created.getEtat());
+		
+		place.setNumero(2);
+		place.setType(TypePlace.DEUX_ROUES);
+		place.setEtat(EtatPlace.OCCUPE);
+		created = parkingService.ajouterPlace(parking.getId(), place);
+
+		assertEquals(parking.getId(), created.getParkingId());
+		assertEquals(place.getNumero(), created.getNumero());
+		assertEquals(place.getType(), created.getType());
+		assertEquals(place.getEtat(), created.getEtat());
 	}
 	
 	@Test
 	void testObtenirPlacesFail() {
-		// parking existe pas
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.obtenirPlaces(-1));
 	}
 	
 	@Test
 	void testObtenirPlaces() {
-		// obtenirplaces()
-		// vérifier liste vide
+		Parking parking = getNewParking();
 
-		// ajouterplace() - obtenirplaces()
-		// vérifier taille liste
+		Iterable<Place> places;
+
+		places = parkingService.obtenirPlaces(parking.getId());
+		assertEquals(0, getIterableSize(places));
+
+		getNewPlace(parking.getId(), 1);
+		places = parkingService.obtenirPlaces(parking.getId());
+		assertEquals(1, getIterableSize(places));
+
+		getNewPlace(parking.getId(), 2);
+		getNewPlace(parking.getId(), 3);
+		places = parkingService.obtenirPlaces(parking.getId());
+		assertEquals(3, getIterableSize(places));
 	}
 
 	@Test
 	void testObtenirPlaceFail() {
-		// parking existe pas
-		// place existe pas
+		Parking parking = getNewParking();
+
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.obtenirPlace(-1, -1));
+		assertThrows(PlaceNotFoundException.class, () -> parkingService.obtenirPlace(parking.getId(), -1));
 	}
 
 	@Test
 	void testObtenirPlace() {
-		// ajouterplace() - obtenirplace()
-		// vérifier
+		Parking parking = getNewParking();
+		Place place = getNewPlace(parking.getId(), 1);
+
+		Place obtenue = parkingService.obtenirPlace(parking.getId(), place.getNumero());
+		
+		assertEquals(place.getParkingId(), obtenue.getParkingId());
+		assertEquals(place.getNumero(), obtenue.getNumero());
+		assertEquals(place.getType(), obtenue.getType());
+		assertEquals(place.getEtat(), obtenue.getEtat());
 	}
 	
 	@Test
 	void testReververPlaceFail() {
-		// parking existe pas
-		// place existe pas
-		// place null
-		// nouvel etat null
-		// nouvel etat occupé et place déjà occupee
+		Parking parking = getNewParking();
+
+		final Place place = parkingService.ajouterPlace(parking.getId(), new Place().setNumero(1).setType(TypePlace.NOMINALE).setEtat(EtatPlace.OCCUPE));
+
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(-1, place.getNumero(), place));
+		
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), -1, place));
+
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), null));
+		
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), null));
+
+		final Place occupe = new Place().setEtat(EtatPlace.OCCUPE);
+
+		assertThrows(PlaceDejaOccupeeException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), occupe));
 	}
 	
 	@Test
 	void testReververPlace() {
-		// ajouterplace()
-		// verifier etat change
+		Parking parking = getNewParking();
+		Place place = getNewPlace(parking.getId(), 1);
+
+		Place libre = new Place().setEtat(EtatPlace.LIBRE);
+		Place occupe = new Place().setEtat(EtatPlace.OCCUPE);
+
+		Place nouvelle;
+
+		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), libre);
+		assertEquals(libre.getEtat(), nouvelle.getEtat());
+		
+		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), occupe);
+		assertEquals(occupe.getEtat(), nouvelle.getEtat());
+		
+		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), occupe);
+		assertEquals(occupe.getEtat(), nouvelle.getEtat());
+		
+		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), libre);
+		assertEquals(libre.getEtat(), nouvelle.getEtat());
 	}
 
 	@Test

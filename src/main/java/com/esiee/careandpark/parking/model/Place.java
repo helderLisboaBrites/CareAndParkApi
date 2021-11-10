@@ -38,32 +38,36 @@ public class Place {
 		return numero;
 	}
 
-	public void setNumero(Integer numero) {
+	public Place setNumero(Integer numero) {
 		this.numero = numero;
+		return this;
 	}
 
 	public int getParkingId() {
 		return parkingId;
 	}
 
-	public void setParkingId(int parkingId) {
+	public Place setParkingId(int parkingId) {
 		this.parkingId = parkingId;
+		return this;
 	}
 
 	public TypePlace getType() {
 		return type;
 	}
 
-	public void setType(TypePlace type) {
+	public Place setType(TypePlace type) {
 		this.type = type;
+		return this;
 	}
 
 	public EtatPlace getEtat() {
 		return etat;
 	}
 
-	public void setEtat(EtatPlace etat) {
+	public Place setEtat(EtatPlace etat) {
 		this.etat = etat;
+		return this;
 	}
 
 	public interface ValidationEtat {}
