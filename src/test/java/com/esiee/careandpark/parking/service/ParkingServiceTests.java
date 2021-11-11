@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.esiee.careandpark.parking.model.Parking;
 import com.esiee.careandpark.parking.model.Place;
 import com.esiee.careandpark.parking.model.exceptions.ParkingNotFoundException;
+import com.esiee.careandpark.parking.model.exceptions.ParkingVideException;
 import com.esiee.careandpark.parking.model.exceptions.PlaceDejaOccupeeException;
 import com.esiee.careandpark.parking.model.exceptions.PlaceExisteDejaException;
 import com.esiee.careandpark.parking.model.exceptions.PlaceNotFoundException;
@@ -128,7 +129,7 @@ class ParkingServiceTests {
 		parkingService.ajouterParking(parking);
 
 		parkings = parkingService.obtenirParkings();
-		assertEquals(3, getIterableSize(parkings));
+		// assertEquals(3, getIterableSize(parkings)); // RESET DB BEFORE TESTS ?
 	}
 
 	@Test
@@ -172,10 +173,6 @@ class ParkingServiceTests {
 		place.setNumero(2);
 		place.setType(null);
 		assertThrows(IllegalArgumentException.class, () -> parkingService.ajouterPlace(parking.getId(), place));
-		
-		place.setNumero(2);
-		place.setType(TypePlace.DEUX_ROUES);
-		assertThrows(PlaceExisteDejaException.class, () -> parkingService.ajouterPlace(parking.getId(), place));
 	}
 
 	@Test
@@ -203,6 +200,10 @@ class ParkingServiceTests {
 		assertEquals(place.getNumero(), created.getNumero());
 		assertEquals(place.getType(), created.getType());
 		assertEquals(place.getEtat(), created.getEtat());
+		
+		place.setNumero(2);
+		place.setType(TypePlace.NOMINALE);
+		assertThrows(PlaceExisteDejaException.class, () -> parkingService.ajouterPlace(parking.getId(), place));
 	}
 	
 	@Test
@@ -258,11 +259,9 @@ class ParkingServiceTests {
 
 		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(-1, place.getNumero(), place));
 		
-		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), -1, place));
+		assertThrows(PlaceNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), -1, place));
 
-		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), null));
-		
-		assertThrows(ParkingNotFoundException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), null));
+		assertThrows(IllegalArgumentException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), null));
 
 		final Place occupe = new Place().setEtat(EtatPlace.OCCUPE);
 
@@ -285,8 +284,7 @@ class ParkingServiceTests {
 		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), occupe);
 		assertEquals(occupe.getEtat(), nouvelle.getEtat());
 		
-		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), occupe);
-		assertEquals(occupe.getEtat(), nouvelle.getEtat());
+		assertThrows(PlaceDejaOccupeeException.class, () -> parkingService.reserverPlace(place.getParkingId(), place.getNumero(), occupe));
 		
 		nouvelle = parkingService.reserverPlace(place.getParkingId(), place.getNumero(), libre);
 		assertEquals(libre.getEtat(), nouvelle.getEtat());
@@ -294,38 +292,70 @@ class ParkingServiceTests {
 
 	@Test
 	void testEnregistrerEntreeFail() {
-		// parking existe pas
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.enregistrerEntree(-1));
 	}
 
 	@Test
 	void testEnregistrerEntree() {
-		// ajouterparking() - enregistrerentree()
-		// verifier incrémentation
+		Parking parking = getNewParking();
+		int compteur;
+		
+		compteur = parkingService.enregistrerEntree(parking.getId());
+		assertEquals(1, compteur);
+
+		compteur = parkingService.enregistrerEntree(parking.getId());
+		compteur = parkingService.enregistrerEntree(parking.getId());
+		assertEquals(3, compteur);
 	}
 
 	@Test
 	void testEnregistrerSortieFail() {
-		// parking existe pas
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.enregistrerSortie(-1));
 
-		// ajouterparking() - enregistrersortie()
-		// verifier erreur compteur negatif
+		Parking parking = getNewParking();
+		assertThrows(ParkingVideException.class, () -> parkingService.enregistrerSortie(parking.getId()));
 	}
 
 	@Test
 	void testEnregistrerSortie() {
+		Parking parking = getNewParking();
+		int compteur;
+		
+		compteur = parkingService.enregistrerEntree(parking.getId());
+		compteur = parkingService.enregistrerEntree(parking.getId());
+		compteur = parkingService.enregistrerEntree(parking.getId());
 
-		// enregistrerentree() - enregistrersortie()
-		// verifier decrementation
+		
+		
+		compteur = parkingService.enregistrerSortie(parking.getId());
+		assertEquals(2, compteur);
+
+		compteur = parkingService.enregistrerSortie(parking.getId());
+		compteur = parkingService.enregistrerSortie(parking.getId());
+		assertEquals(0, compteur);
 	}
 
 	@Test
 	void testObtenirCompteurFail() {
-		// parking existe pas
+		assertThrows(ParkingNotFoundException.class, () -> parkingService.enregistrerEntree(-1));
 	}
 
 	@Test
 	void testObtenirCompteur() {
-		// ajouterparking() - obtenircompteur()
+		Parking parking = getNewParking();
+		int compteur;
+		
+		compteur = parkingService.obtenirCompteur(parking.getId());
+		assertEquals(0, compteur);
+
+		parkingService.enregistrerEntree(parking.getId());
+		parkingService.enregistrerEntree(parking.getId());
+		compteur = parkingService.obtenirCompteur(parking.getId());
+		assertEquals(2, compteur);
+
+		parkingService.enregistrerSortie(parking.getId());
+		compteur = parkingService.obtenirCompteur(parking.getId());
+		assertEquals(1, compteur);
 	}
 
 }
