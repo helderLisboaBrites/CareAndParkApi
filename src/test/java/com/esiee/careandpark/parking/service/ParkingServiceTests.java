@@ -107,29 +107,32 @@ class ParkingServiceTests {
 	@Test
 	void testObtenirParkings() {
 		Iterable<Parking> parkings;
-		
+
 		parkings = parkingService.obtenirParkings();
-		// assertEquals(0, getIterableSize(parkings)); // RESET DB BEFORE TESTS ?
+		int base = getIterableSize(parkings);
 
 		final Parking parking = new Parking();
 
-		parking.setNom("Nom 1");
-		parking.setAdresse("Adresse 1");
-		parkingService.ajouterParking(parking);
+		Parking p1 = new Parking();
+		p1.setNom("Nom 1");
+		p1.setAdresse("Adresse 1");
+		parkingService.ajouterParking(p1);
 
 		parkings = parkingService.obtenirParkings();
-		// assertEquals(1, getIterableSize(parkings)); // RESET DB BEFORE TESTS ?
+		assertEquals(base + 1, getIterableSize(parkings));
 
-		parking.setNom("Nom 2");
-		parking.setAdresse("Adresse 2");
-		parkingService.ajouterParking(parking);
+		Parking p2 = new Parking();
+		p2.setNom("Nom 2");
+		p2.setAdresse("Adresse 2");
+		parkingService.ajouterParking(p2);
 
-		parking.setNom("Nom 3");
-		parking.setAdresse("Adresse 3");
-		parkingService.ajouterParking(parking);
+		Parking p3 = new Parking();
+		p3.setNom("Nom 3");
+		p3.setAdresse("Adresse 3");
+		parkingService.ajouterParking(p3);
 
 		parkings = parkingService.obtenirParkings();
-		// assertEquals(3, getIterableSize(parkings)); // RESET DB BEFORE TESTS ?
+		assertEquals(base + 3, getIterableSize(parkings));
 	}
 
 	@Test
