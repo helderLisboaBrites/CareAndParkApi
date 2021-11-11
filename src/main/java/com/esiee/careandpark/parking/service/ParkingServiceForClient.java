@@ -137,7 +137,9 @@ public class ParkingServiceForClient {
         }
 
 		place.setParkingId(id_parking);
-		place.setEtat(EtatPlace.LIBRE);
+		if(place.getEtat() == null) {
+			place.setEtat(EtatPlace.LIBRE);
+		}
 
 		if(placeRepo.existsByNumeroAndParkingId(place.getNumero(), id_parking)) {
 			throw new PlaceExisteDejaException(place.getNumero(), id_parking);
@@ -147,6 +149,10 @@ public class ParkingServiceForClient {
 	}
 
     public Place obtenirPlace(int id_parking, int numero) {
+		
+        if(!parkingRepo.existsById(id_parking)) {
+            throw new ParkingNotFoundException(id_parking);
+        }
 
 		Optional<Place> place = placeRepo.findByParkingIdAndNumero(id_parking, numero);
 
