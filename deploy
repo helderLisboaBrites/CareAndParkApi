@@ -1,0 +1,4 @@
+
+mvn clean package -DskipTests=true
+docker build -t care_and_park_api_docker:latest .
+docker-compose up
